@@ -1,5 +1,5 @@
 import requests
-from settings import LIFX_TOKEN
+from app.settings import LIFX_TOKEN
 
 
 # ref: http://api.developer.lifx.com/
@@ -20,8 +20,3 @@ def toggle_light(light):
     response = requests.post(url, headers=headers)
 
     return response.json()
-    
-
-if __name__ == '__main__':
-    lights = get_lights()
-    toggle_light(lights[0])

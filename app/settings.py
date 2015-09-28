@@ -1,3 +1,4 @@
+DB_ENGINE = 'sqlite:///db.sqlite3'
 LIFX_TOKEN = ''
 INDICO_API_KEY = ''
 

@@ -1,8 +1,12 @@
 ## Install
-    virtualenv venv
+    pyenv venv
     . venv/bin/activate
     pip install -r requirements.txt
-    python -m app.x
+    python -m app.db  # creates db
+    python -m app.run
+    
+    # Testing
+    python -m app.tests
 
 ## TODO
 
