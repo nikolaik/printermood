@@ -1,6 +1,6 @@
 *.swp
 *.pyc
-local_settings.py
+local_config.py
 venv
 .idea
 db.sqlite3

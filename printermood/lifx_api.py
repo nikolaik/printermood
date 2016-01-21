@@ -1,5 +1,7 @@
 import requests
-from app.settings import LIFX_TOKEN
+from printermood import app
+
+LIFX_TOKEN = app.config['LIFX_TOKEN']
 
 
 # ref: http://api.developer.lifx.com/
