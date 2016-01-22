@@ -1,13 +1,16 @@
+from __future__ import print_function
 import cv2
+import numpy
 import sys
 import time
 
 
 class FaceCamera(object):
-    def __init__(self, cascade_path):
-        self.video_capture = None
+    def __init__(self, cascade_path, fps=25):
+        self.fps = fps
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
-        self._face_extraction_delay = 2
+        self.video_capture = None
+        self._face_extraction_delay = 0.5
         self._face_store = []
 
     def _faces_overlapping(self, face1, face2):
@@ -27,6 +30,22 @@ class FaceCamera(object):
 
         return op_x and op_y
 
+    def _custom_sharpness(self, face):
+        edges = cv2.Laplacian(face, cv2.CV_64F)
+        hist = numpy.histogram(edges, range=(0, 255), density=True, bins=255)
+        return sum(i * v for i, v in enumerate(hist[0][64:]))
+
+    def _so_sharpness(self, face):
+        gy, gx = numpy.gradient(face)
+        norm = gx**2 + gy**2
+        return numpy.average(norm)
+
+    def _better_face(self, face1, face2):
+        f = self._so_sharpness
+        sharpness1 = f(face1)
+        sharpness2 = f(face2)
+        return sharpness1 > sharpness2
+
     def _update_face_store(self, face_coords, face_img):
         face_index = -1
         for index, stored_face_tuple in enumerate(self._face_store):
@@ -34,28 +53,33 @@ class FaceCamera(object):
                 face_index = index
                 break
         
+        face_small = cv2.resize(face_img, (120, int(120 * (float(face_coords[3]) / face_coords[2]))))
+        #face_gaussian = cv2.GaussianBlur(face_gray, (9, 9), 1)
+        #face_laplacian = cv2.Laplacian(face_gaussian, cv2.CV_64F)
+        #cv2.imshow('Laplacian', face_laplacian)
+        face_stored = face_small
+
         if face_index >= 0:
-            t, old_coords, img = self._face_store[face_index]
-            if face_coords[2] > old_coords[2]:
-                # bigger == better?
+            t, old_coords, img, face = self._face_store[face_index]
+            if self._better_face(face_img, img):
                 img = face_img
 
             if time.time() - t > self._face_extraction_delay:
                 del self._face_store[face_index]
                 return img
-            self._face_store[face_index] = ((t, face_coords, img))
+            self._face_store[face_index] = ((t, face_coords, img, face_stored))
         else:
-            self._face_store.append((time.time(), face_coords, face_img))
+            self._face_store.append((time.time(), face_coords, face_img, face_stored))
             
     def capture_frame(self):
         ret, frame = self.video_capture.read()
-        return frame
+
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 
     def get_face_locations(self, frame):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         return self.face_cascade.detectMultiScale(
-            gray,
+            frame,
             scaleFactor=1.1,
             minNeighbors=7,
             minSize=(60, 90),
@@ -91,29 +115,9 @@ class FaceCamera(object):
         self.video_capture = cv2.VideoCapture(0)
 
     def loop(self):
+        seconds_per_frame = 1.0 / self.fps
         while True:
-            frame = self.capture_frame()
-            faces = self.get_face_locations(frame)
-
-            for face in faces:
-                rect = self.get_rect(face)
-                self.draw_rect(frame, rect)
-                
-            # Be nice, quit if asked
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-            # Display the resulting frame
-            cv2.imshow('Video', frame)
-
-    def stop(self):
-        self.video_capture.release()
-        cv2.destroyAllWindows()
-
-    def __iter__(self):
-        self.start()
-
-        while True:
+            start_time = time.time()
             frame = self.capture_frame()
             faces = self.get_face_locations(frame)
 
@@ -131,20 +135,43 @@ class FaceCamera(object):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+            end_time = time.time()
+            duration_s = end_time - start_time
+
+            sleep_str = ''
+            if duration_s < seconds_per_frame:
+                sleep_for = seconds_per_frame - duration_s
+                time.sleep(sleep_for)
+                sleep_str = ' (slept for %0.2fms)' % (sleep_for * 1000,)
+
+            print("Time per frame: %0.2fms%s" % (duration_s * 1000, sleep_str))
+
+    def stop(self):
+        self.video_capture.release()
+        cv2.destroyAllWindows()
+
+    def __iter__(self):
+        self.start()
+        for face in self.loop():
+            yield face
         self.stop()
 
 if __name__ == "__main__":
-    cam = FaceCamera(sys.argv[1])
+    try:
+        haar = sys.argv[1]
+    except IndexError:
+        haar = 'app/haarcascade_frontalface_default.xml'
+
+    cam = FaceCamera(haar)
+
     try:
         for frame in cam:
+            pass
             cv2.imshow('Video', frame)
-
-        #cam.start()
-        #cam.loop()
     except KeyboardInterrupt:
         pass
     finally:
-        print "Closing...",
+        print("Closing...", end='')
         cam.stop()
-        print 'done!'
+        print('done!')
    
