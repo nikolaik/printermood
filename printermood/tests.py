@@ -1,20 +1,13 @@
 import os
 import unittest
 
-from app.db import get_db_session
-from app.indico_api import get_emotions
-from app.lifx_api import get_lights
-from app.models import Light
-from app.utils import top_emotion
+from printermood.indico_api import get_emotions
+from printermood.lifx_api import get_lights
+from printermood.utils import top_emotion
 
 
 class TestAllTheThings(unittest.TestCase):
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-    def test_get_lights(self):
-        s = get_db_session()
-        light = s.query(Light).all()[:1]
-        self.assertIsNotNone(light)
 
     @unittest.skip('invalid token, fix tomorrow')
     def test_lifx_get_lights(self):
@@ -23,7 +16,7 @@ class TestAllTheThings(unittest.TestCase):
 
     @unittest.skip('api')
     def test_indico_api(self):
-        filepath = os.path.join(self.BASE_DIR, 'app/data/not_nice_n.png')
+        filepath = os.path.join(self.BASE_DIR, 'static/not_nice_n.png')
         emotions = get_emotions(filepath)
         self.assertEquals(type(emotions), dict)
         self.assertIn('Neutral', emotions.keys())

@@ -1,6 +1,8 @@
 from indicoio import fer
 
-from app.settings import INDICO_API_KEY
+from printermood import app
+
+INDICO_API_KEY = app.config['INDICO_API_KEY']
 
 
 def get_emotions(face):

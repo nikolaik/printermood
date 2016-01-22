@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head><title>Printermood</title>
+</head>
+<body>
+<h1>Current Mood: Happy</h1>
+Hi, welcome to printermood :-)
+<h2>Light</h2>
+<ul>
+{% for l in lights %}
+    <li><strong>{{l.label}}</strong> (Connection: {{l.connected }}, Power: {{ l.power }})</li>
+{% endfor %}
+</ul>
+
+<h2>Mood log</h2>
+<ul>
+    {% for m in moods %}
+    <li>{{ m }}</li>
+    {% endfor %}
+    <li><img src="/static/nice_r.png"><br>2016-01-21 00:00:00 <em>Happy</em> <a href="#">Robert</a></li>
+    <li><img src="/static/nice_n.png"><br>2016-01-30 00:00:00 <em>Happy</em> <a href="#">Nikolai</a></li>
+</ul>
+
+<h1>Admin</h1>
+<h2>Train faces</h2>
+<ul>
+    <li><a href="/faces/">List of faces</a></li>
+</ul>
+<h2><a href="/users/">Users</a></h2>
+<form method="post" action="/">
+    {{ form.csrf_token }}
+    <ul>
+        {% for u in users %}
+            <li><a href="/user/{{ u._id }}/">{{ u.name }}</a></li>
+        {% endfor %}
+        <li>
+        {{ form.name(size=20) }}<button type="submit" name="submit">Add new</button></li>
+    </ul>
+</form>
+</body>
+</html>

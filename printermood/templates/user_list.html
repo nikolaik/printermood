@@ -1,0 +1,7 @@
+<h1>Users</h1>
+<ul>
+{% for u in users %}
+    <li><a href="/user/{{ u._id }}/">{{ u.name }}</a></li>
+{% endfor %}
+</ul>
+<a href="/">Back</a>
