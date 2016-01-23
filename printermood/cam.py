@@ -1,16 +1,21 @@
 from __future__ import print_function
 import cv2
+import logging
 import numpy
 import sys
 import time
 
 
+logger = logging.getLogger(__name__)
+
+
 class FaceCamera(object):
-    def __init__(self, cascade_path, fps=25):
+    def __init__(self, cascade_path, fps=25, delay=0.5, show_preview=False):
         self.fps = fps
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
+        self.face_extraction_delay = delay
+        self.show_preview = show_preview
         self.video_capture = None
-        self._face_extraction_delay = 0.5
         self._face_store = []
 
     def _faces_overlapping(self, face1, face2):
@@ -44,6 +49,7 @@ class FaceCamera(object):
         f = self._so_sharpness
         sharpness1 = f(face1)
         sharpness2 = f(face2)
+        logger.debug('sharpness1=%0.2f %s sharpness2=%0.2f' % (sharpness1, '>' if sharpness1 > sharpness2 else '<', sharpness2))
         return sharpness1 > sharpness2
 
     def _update_face_store(self, face_coords, face_img):
@@ -53,18 +59,14 @@ class FaceCamera(object):
                 face_index = index
                 break
         
-        face_small = cv2.resize(face_img, (120, int(120 * (float(face_coords[3]) / face_coords[2]))))
-        #face_gaussian = cv2.GaussianBlur(face_gray, (9, 9), 1)
-        #face_laplacian = cv2.Laplacian(face_gaussian, cv2.CV_64F)
-        #cv2.imshow('Laplacian', face_laplacian)
-        face_stored = face_small
+        face_stored = cv2.resize(face_img, (120, int(120 * (float(face_coords[3]) / face_coords[2]))))
 
         if face_index >= 0:
             t, old_coords, img, face = self._face_store[face_index]
             if self._better_face(face_img, img):
                 img = face_img
 
-            if time.time() - t > self._face_extraction_delay:
+            if time.time() - t > self.face_extraction_delay:
                 del self._face_store[face_index]
                 return img
             self._face_store[face_index] = ((t, face_coords, img, face_stored))
@@ -119,20 +121,30 @@ class FaceCamera(object):
         while True:
             start_time = time.time()
             frame = self.capture_frame()
+            logger.debug('Captured a frame.')
+
             faces = self.get_face_locations(frame)
+            logger.debug('Found %d faces at locations %s.', len(faces), ', '.join(map(str, faces)))
+
+            if self.show_preview:
+                cv2.imshow('Preview', frame)
 
             ready_faces = []
             for face in faces:
                 rect = self.get_rect(face)
+                if self.show_preview:
+                    self.draw_rect(frame, rect)
+
                 face_img = self.extract_face(frame, rect=rect)
                 ready_face = self._update_face_store(rect, face_img)
                 if ready_face is not None:
                     ready_faces.append(ready_face)
-        
+    
+
             for ready_face in ready_faces:
                 yield ready_face
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF in map(ord, list('cq')):
                 break
 
             end_time = time.time()
@@ -144,7 +156,7 @@ class FaceCamera(object):
                 time.sleep(sleep_for)
                 sleep_str = ' (slept for %0.2fms)' % (sleep_for * 1000,)
 
-            print("Time per frame: %0.2fms%s" % (duration_s * 1000, sleep_str))
+            logger.debug("Time per frame: %0.2fms%s" % (duration_s * 1000, sleep_str))
 
     def stop(self):
         self.video_capture.release()
@@ -152,21 +164,23 @@ class FaceCamera(object):
 
     def __iter__(self):
         self.start()
-        for face in self.loop():
-            yield face
-        self.stop()
+        try:
+            for face in self.loop():
+                yield face
+        finally:
+            self.stop()
 
 if __name__ == "__main__":
     try:
         haar = sys.argv[1]
     except IndexError:
-        haar = 'app/haarcascade_frontalface_default.xml'
+        haar = 'haarcascade_frontalface_default.xml'
 
-    cam = FaceCamera(haar)
+    logger.setLevel(logging.DEBUG)
+    cam = FaceCamera(haar, show_preview=True)
 
     try:
         for frame in cam:
-            pass
             cv2.imshow('Video', frame)
     except KeyboardInterrupt:
         pass
