@@ -1,8 +1,14 @@
-<h1>User</h1>
-<ul>
-    <li>ID: {{user._id}}</li>
-    <li>Name: {{user.name}}</li>
-</ul>
+{% extends "base.html" %}
+{% block content %}
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col">
+        <h1>User</h1>
+        <ul>
+            <li>ID: {{user._id}}</li>
+            <li>Name: {{user.name}}</li>
+        </ul>
 
-
-<a href="javascript:history.go(-1);">Back</a>
+        <a href="javascript:history.go(-1);" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Back</a>
+    </div>
+</div>
+{% endblock %}

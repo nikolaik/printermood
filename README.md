@@ -7,6 +7,12 @@
     pip install -r requirements.txt
     python run.py
     
+    # Frontend
+    cd printermood/static
+    npm install
+    npm install -g webpack
+    npm start  # to build/package frontend stuff
+
     # Testing
     python -m printermood.tests
 
@@ -21,8 +27,8 @@
 
 - User: name
 - LIFXLight: name, power_state, id, ...
-- Faces: image data, timestamp, metadata
-- Mood: user_id, mood, face_id
+- Faces: image data, timestamp, metadata, url
+- Mood: user_id, name, face_id
 
 
 ## Colors

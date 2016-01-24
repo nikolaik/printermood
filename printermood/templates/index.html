@@ -1,41 +1,130 @@
-<!DOCTYPE html>
-<html>
-<head><title>Printermood</title>
-</head>
-<body>
-<h1>Current Mood: Happy</h1>
-Hi, welcome to printermood :-)
-<h2>Light</h2>
-<ul>
-{% for l in lights %}
-    <li><strong>{{l.label}}</strong> (Connection: {{l.connected }}, Power: {{ l.power }})</li>
-{% endfor %}
-</ul>
+{% extends "base.html" %}
+{% block title %}printermood dashboard{% endblock %}
+{% block content %}
 
-<h2>Mood log</h2>
-<ul>
-    {% for m in moods %}
-    <li>{{ m }}</li>
-    {% endfor %}
-    <li><img src="/static/nice_r.png"><br>2016-01-21 00:00:00 <em>Happy</em> <a href="#">Robert</a></li>
-    <li><img src="/static/nice_n.png"><br>2016-01-30 00:00:00 <em>Happy</em> <a href="#">Nikolai</a></li>
-</ul>
-
-<h1>Admin</h1>
-<h2>Train faces</h2>
-<ul>
-    <li><a href="/faces/">List of faces</a></li>
-</ul>
-<h2><a href="/users/">Users</a></h2>
-<form method="post" action="/">
-    {{ form.csrf_token }}
-    <ul>
-        {% for u in users %}
-            <li><a href="/user/{{ u._id }}/">{{ u.name }}</a></li>
+<div class="mdl-grid section--center">
+    <div class="mdl-cell mdl-cell--12-col">
+        <!-- Welcome card -->
+        <div class="welcome-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                <h2 class="mdl-card__title-text">Hi!</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+                <h4 class="welcome-card__greeting">Welcome to printermood :-)</h4>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mdl-grid section--center">
+    <div class="mdl-cell mdl-cell--6-col mdl-cell--12-col-tablet">
+        <!-- Current mood -->
+        <div class="current-mood-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                <h2 class="mdl-card__title-text">Current Mood</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+                <h1 class="current-mood-card__mood">Happy <i class="material-icons">mood</i></h1>
+            </div>
+        </div>
+    </div>
+    <div class="mdl-cell mdl-cell--6-col mdl-cell--12-col-tablet">
+        <!-- Lights -->
+        {% for l in lights %}
+        <div class="light-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                <h2 class="mdl-card__title-text"><i class="material-icons">lightbulb_outline</i> {{l.label}}</h2>
+            </div>
+            <div class="mdl-card__supporting-text">
+                {% if l.connected %}<i class="material-icons">check</i> Connected{% else %}<i class="material-icons">warning</i> Disconnected{% endif %}
+                {% if l.power == 'on' %}<i class="material-icons">check</i>{% else %}<i class="material-icons">info</i>{% endif %} Powered {{ l.power }}</li>
+            </div>
+        </div>
         {% endfor %}
-        <li>
-        {{ form.name(size=20) }}<button type="submit" name="submit">Add new</button></li>
-    </ul>
-</form>
-</body>
-</html>
+    </div>
+</div>
+
+
+<div class="mdl-grid section--center">
+    <div class="mdl-cell mdl-cell--12-col">
+        <!-- Mood log -->
+        <h2>Mood log</h2>
+    </div>
+    {% for m in moods %}
+    <div class="mdl-cell mdl-cell--6-col mdl-cell mdl-cell--12-col-tablet">
+        <div class="mood-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                <img src="{{ m.face.url}}">
+            </div>
+            <div class="mdl-card__supporting-text">
+                {{m.timestamp }} <i class="material-icons">mood</i> <em>{{m.name}}</em> <a href="#">{{m.user.name}}</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="mdl-cell mdl-cell--6-col mdl-cell mdl-cell--12-col-tablet">
+        <div class="mood-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                2016-01-21 00:00:00<img src="/static/nice_r.png">
+            </div>
+            <div class="mdl-card__supporting-text">
+                 <i class="material-icons">mood</i> <em>Happy</em> <a href="#">Robert</a>
+            </div>
+        </div>
+    </div>
+    <div class="mdl-cell mdl-cell--6-col mdl-cell mdl-cell--12-col-tablet">
+        <div class="mood-card mdl-card mdl-shadow--2dp">
+            <div class="mdl-card__title">
+                2016-01-30 00:00:00<img src="/static/nice_n.png">
+            </div>
+            <div class="mdl-card__supporting-text">
+                 <i class="material-icons">mood</i> <em>Happy</em> <a href="#">Nikolai</a>
+            </div>
+        </div>
+    </div>
+    <div class="mdl-cell mdl-cell--6-col mdl-cell mdl-cell--12-col-tablet">
+        <!-- Train faces -->
+        <h2>Train faces</h2>
+        <a href="/faces/" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Go to list of faces</a>
+    </div>
+
+    <div class="mdl-cell mdl-cell--6-col mdl-cell mdl-cell--12-col-tablet">
+        <!-- User list -->
+        <h2>Users</h2>
+        <table class="mdl-data-table mdl-js-data-table">
+            <thead>
+            <tr>
+                <th class="mdl-data-table__cell--non-numeric">Name</th>
+                <th>More</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for u in users %}
+            <tr>
+                <td class="mdl-data-table__cell--non-numeric"><a href="/user/{{ u._id }}/">{{ u.name }}</a></td>
+                <td>
+                    <button id="user-more-{{ u._id }}" class="mdl-button mdl-js-button mdl-button--icon"><i class="material-icons">more_vert</i></button>
+                    <ul class="mdl-menu mdl-menu--bottom-left mdl-js-menu mdl-js-ripple-effect" for="user-more-{{ u._id }}">
+                        <li class="mdl-menu__item">Delete</li>
+                    </ul>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <!-- Add new user -->
+        <form method="post" action="/">
+            {{ form.csrf_token }}
+            <div class="mdl-textfield mdl-js-textfield">
+                {{ form.name(size=16, class_='mdl-textfield__input') }}
+                <label class="mdl-textfield__label" for="name">Name...</label>
+            </div>
+            <button type="submit" name="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Add new user</button>
+        </form>
+        <br>
+        <!-- User list link -->
+        <a href="/users/" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Go to list of users</a>
+    </div>
+</div>
+{% endblock %}

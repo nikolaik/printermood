@@ -1,7 +1,14 @@
-<h1>Users</h1>
-<ul>
-{% for u in users %}
-    <li><a href="/user/{{ u._id }}/">{{ u.name }}</a></li>
-{% endfor %}
-</ul>
-<a href="/">Back</a>
+{% extends "base.html" %}
+{% block content %}
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col">
+        <h1>Users</h1>
+        <ul>
+        {% for u in users %}
+            <li><a href="/user/{{ u._id }}/">{{ u.name }}</a></li>
+        {% endfor %}
+        </ul>
+        <a href="/" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Back</a>
+    </div>
+</div>
+{% endblock %}
