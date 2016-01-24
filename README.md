@@ -1,4 +1,7 @@
+Match the light in your printer room with how the user feels
 
+![Image of printermood dashboard](screenshot.png)
+ 
 ## Install
     apt install mongo-server python3-venv python3-dev
     # pillow deps
