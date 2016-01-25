@@ -1,9 +1,16 @@
-<h1>Faces</h1>
-<ul>
-{% for f in face_list %}
-    <li><img src="{{ f.url }}">{{ f.created }} <a href="#">Assign (TODO)</a></li>
-{% endfor %}
-    <li><img src="http://placehold.it/180x180"><br>2016-01-30 00:00:00 <a href="#">? Assign</a></li>
-    <li><img src="/static/nice_n.png"><br>2016-01-30 00:00:00 <em>Happy</em> <a href="#">Nikolai</a></li>
-</ul>
-<a href="/">Back</a>
+{% extends "base.html" %}
+{% block content %}
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col">
+        <h1>Faces</h1>
+        <ul>
+        {% for f in face_list %}
+            <li><img src="{{ f.url }}">{{ f.created }} <a href="#">Assign (TODO)</a></li>
+        {% endfor %}
+            <li><img src="http://placehold.it/180x180"><br>2016-01-30 00:00:00 <a href="#">? Assign</a></li>
+            <li><img src="/static/nice_n.png"><br>2016-01-30 00:00:00 <em>Happy</em> <a href="#">Nikolai</a></li>
+        </ul>
+        <a href="/" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Back</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <script src="/static/dist/bundle.js"></script>
+</head>
+<body>
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    {% block nav %}
+        {% with page_title='Printermood' %}
+            {% include "navigation.html" %}
+        {% endwith %}
+    {% endblock %}
+    <main class="mdl-layout__content">
+    <div class="page-content">
+    {% block content %}{% endblock %}
+    </div>
+    </main>
+</div>
+</div>
+
+</body>
+</html>

@@ -1,9 +1,18 @@
 from __future__ import print_function
-import cv2
-import logging
-import numpy
 import sys
+try:
+    import cv2
+    import numpy
+except ImportError:
+    # Hack in site path for opencv and numpy
+    sys.path.append('/usr/lib/python3/dist-packages/')
+    import cv2
+    import numpy
+
+import logging
 import time
+
+CV2_VERSION = tuple(map(lambda x: int(x), cv2.__version__.split('.')))
 
 
 logger = logging.getLogger(__name__)
@@ -85,7 +94,7 @@ class FaceCamera(object):
             scaleFactor=1.1,
             minNeighbors=7,
             minSize=(60, 90),
-            flags=cv2.cv.CV_HAAR_SCALE_IMAGE
+            flags=cv2.cv.CV_HAAR_SCALE_IMAGE if CV2_VERSION < (3, 0, 0) else cv2.CASCADE_SCALE_IMAGE
         )
 
     def extract_face(self, frame, face=None, rect=None):

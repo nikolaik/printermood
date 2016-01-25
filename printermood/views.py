@@ -1,11 +1,23 @@
 from bson import ObjectId
-from flask import render_template, redirect
+from flask import render_template, redirect, request
 from printermood import app
 from flask.ext.pymongo import PyMongo
 from printermood.forms import UserForm
 from printermood.lifx_api import get_lights
 
 mongo = PyMongo(app)
+
+
+def _get_menu_items():
+    menu_items = [
+        {'label': 'Home', 'url': '/'},
+        {'label': 'Users', 'url': '/users/'},
+        {'label': 'Faces', 'url': '/faces/'},
+    ]
+    for item in menu_items:
+        if item['url'] == request.path:
+            item['is_active'] = True
+    return menu_items
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -19,7 +31,8 @@ def home_page():
         'lights': get_lights(),
         'users': mongo.db.users.find(),
         'moods': mongo.db.moods.find(),
-        'form': form
+        'form': form,
+        'menu_items': _get_menu_items()
     }
     return render_template('index.html', **data)
 
@@ -31,7 +44,8 @@ def user_list():
 
     data = {
         'users': users,
-        'form': form
+        'form': form,
+        'menu_items': _get_menu_items()
     }
 
     return render_template('user_list.html', **data)
@@ -39,12 +53,20 @@ def user_list():
 
 @app.route('/user/<user_id>/')
 def user_detail(user_id):
-    user = mongo.db.users.find_one({'_id': ObjectId(user_id)})
+    user = mongo.db.users.find_one({'_id': ObjectId(user_id)}),
+    data = {
+        'user': user[0],
+        'menu_items': _get_menu_items()
+    }
 
-    return render_template('user_detail.html', user=user)
+    return render_template('user_detail.html', **data)
 
 
 @app.route('/faces/')
 def face_list():
     faces = mongo.db.faces.find()
-    return render_template('face_list.html', faces=faces)
+    data = {
+        'faces': faces,
+        'menu_items': _get_menu_items()
+    }
+    return render_template('face_list.html', **data)
