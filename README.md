@@ -3,6 +3,14 @@ Match the light in your printer room with how the user feels
 ![Image of printermood dashboard](screenshot.png)
  
 ## Install
+
+### Docker
+The support for docker is still experimental, but at this point we have support for python-opencv and scikit-learn, which is a major step forward.
+
+	docker build -t robertko/printermood .
+	docker run -ti --rm --privileged -e DISPLAY=:0.0 -v /tmp/.X11-unix:/tmp/.X11-unix robertko/printermood python printermood/cam.py
+
+### Manually
     apt install mongo-server python3-venv python3-dev
     apt-get build-dep python-pil
     pyenv venv
@@ -32,10 +40,12 @@ Match the light in your printer room with how the user feels
 
 ## TODO
 
-- [ ] Capture image if motion and face is detected, per 3s
+- [x] Capture image if motion and face is detected, per 3s
 - [ ] Send image to Indico and save result
 - [ ] On 5 faces with same emotion (confidence above ~0.4) set lightbulb state to specified color
-
+- [ ] Create a blocking "get_face"-function
+- [ ] Consider setting up docker-compose
+- [ ] Add mongodb docker image
 
 # Models
 
