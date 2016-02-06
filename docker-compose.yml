@@ -1,0 +1,8 @@
+cam:
+    build: .
+    privileged: true
+    environment:
+        - DISPLAY=:0.0
+    volumes:
+        - '/tmp/.X11-unix:/tmp/.X11-unix'
+    command: python printermood/cam.py printermood/haarcascade_frontalface_default.xml
