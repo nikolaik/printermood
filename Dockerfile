@@ -13,6 +13,14 @@ RUN apt-get install -y libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev bui
 RUN apt-get install -y libdc1394-22-dev libdc1394-22 libdc1394-utils
 RUN apt-get install -y python-opencv 
 
+# ==============
+# Install Dlib #
+# ==============
+RUN apt-get install -y cmake libboost-python-dev git
+RUN git clone https://github.com/davisking/dlib.git /dlib/
+WORKDIR /dlib/
+RUN python setup.py install
+
 # ==========================
 # Install the requirements #
 # ==========================
