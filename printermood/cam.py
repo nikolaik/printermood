@@ -1,7 +1,6 @@
 from __future__ import print_function
 import argparse
 import sys
-import dlib
 import logging
 import time
 
@@ -24,6 +23,7 @@ class FaceCamera(object):
         self.fps = fps
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
         self.face_extraction_delay = delay
+        self.object_tracker = None
         self.show_preview = show_preview
         self.video_capture = None
         self._face_store = []
@@ -37,7 +37,7 @@ class FaceCamera(object):
 
         op_x1 = f1_x1 <= f2_x1 <= f1_x2
         op_x2 = f2_x1 <= f1_x1 <= f2_x2
-        op_x =  op_x1 or op_x2
+        op_x = op_x1 or op_x2
 
         op_y1 = f2_y1 <= f1_y1 <= f2_y2
         op_y2 = f1_y1 <= f2_y1 <= f1_y2
@@ -62,8 +62,9 @@ class FaceCamera(object):
             if self._faces_overlapping(stored_face_tuple[1], face_coords):
                 face_index = index
                 break
-        
-        face_stored = cv2.resize(face_img, (120, int(120 * (float(face_coords[3]) / face_coords[2]))))
+
+        target_size = 120, int(120 * (float(face_coords[3]) / face_coords[2]))
+        face_stored = cv2.resize(face_img, target_size)
 
         if face_index >= 0:
             t, old_coords, img, face = self._face_store[face_index]
@@ -75,21 +76,28 @@ class FaceCamera(object):
                 return img
             self._face_store[face_index] = ((t, face_coords, img, face_stored))
         else:
-            self._face_store.append((time.time(), face_coords, face_img, face_stored))
-            
+            self._face_store.append(tuple(time.time(),
+                                          face_coords,
+                                          face_img,
+                                          face_stored))
+
     def capture_frame(self):
         ret, frame = self.video_capture.read()
 
         return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-
     def get_face_locations(self, frame):
+        if CV2_VERSION < (3, 0, 0):
+            flags = cv2.cv.CV_HAAR_SCALE_IMAGE
+        else:
+            flags = cv2.CASCADE_SCALE_IMAGE
+
         return self.face_cascade.detectMultiScale(
             frame,
             scaleFactor=1.1,
             minNeighbors=7,
             minSize=(60, 90),
-            flags=cv2.cv.CV_HAAR_SCALE_IMAGE if CV2_VERSION < (3, 0, 0) else cv2.CASCADE_SCALE_IMAGE
+            flags=flags,
         )
 
     def extract_face(self, frame, face=None, rect=None):
@@ -99,7 +107,6 @@ class FaceCamera(object):
         else:
             x, y, w, h = self.get_rect(face)
         return frame[y:y+h, x:x+w]
-
 
     def get_rect(self, face, margins_x=30, margins_y=80):
         x, y, w, h = face
@@ -111,11 +118,9 @@ class FaceCamera(object):
             h + 2 * margins_y,
         )
 
-
     def draw_rect(self, frame, rect):
         x, y, w, h = rect
         cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
-
 
     def start(self):
         self.video_capture = cv2.VideoCapture(0)
@@ -126,7 +131,9 @@ class FaceCamera(object):
             start_time = time.time()
             frame = self.capture_frame()
             faces = self.get_face_locations(frame)
-            logger.debug('Found %d faces at locations %s.', len(faces), ', '.join(map(str, faces)))
+            logger.debug('Found %d faces at locations %s.',
+                         len(faces),
+                         ', '.join(map(str, faces)))
 
             if self.show_preview:
                 cv2.imshow('Preview', frame)
@@ -141,7 +148,6 @@ class FaceCamera(object):
                 ready_face = self._update_face_store(rect, face_img)
                 if ready_face is not None:
                     ready_faces.append(ready_face)
-    
 
             for ready_face in ready_faces:
                 yield ready_face
@@ -158,7 +164,9 @@ class FaceCamera(object):
                 time.sleep(sleep_for)
                 sleep_str = ' (slept for %0.2fms)' % (sleep_for * 1000,)
 
-            logger.debug("Time per frame: %0.2fms%s" % (duration_s * 1000, sleep_str))
+            logger.debug("Time per frame: %0.2fms%s",
+                         duration_s * 1000,
+                         sleep_str)
 
     def stop(self):
         self.video_capture.release()
@@ -174,10 +182,12 @@ class FaceCamera(object):
 
 
 def get_arguments():
-    argument_parser = argparse.ArgumentParser(description="Face detection script.")
+    argument_parser = argparse.ArgumentParser(
+        description="Face detection script."
+    )
     argument_parser.add_argument(
-        '-c', 
-        '--cascade', 
+        '-c',
+        '--cascade',
         action='store',
         default='printermood/haarcascade_frontalface_default.xml',
     )
@@ -208,4 +218,3 @@ if __name__ == "__main__":
         print("Closing...", end='')
         cam.stop()
         print('done!')
-   

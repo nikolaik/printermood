@@ -1,6 +1,4 @@
-from contextlib import contextmanager
 from datetime import timedelta
-from threading import Thread
 import signal
 
 
@@ -16,9 +14,9 @@ def top_emotion(emotions):
 
 
 class timeout(object):
-    """A context manager designed to abort an action after given amount of time.
-    It takes the same arguments as datetime.timedelta class. Here's a functional
-    example:
+    """A context manager designed to abort an action after given amount of
+    time. It takes the same arguments as datetime.timedelta class. Here's a
+    functional example:
 
     >>> start_time = time.time()
     >>> with timeout(seconds=3):
@@ -48,4 +46,3 @@ class timeout(object):
     @staticmethod
     def new_handler(signo, frame):
         raise TimeoutException()
-

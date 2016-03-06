@@ -5,6 +5,7 @@ from flask.ext.pymongo import PyMongo
 from printermood.forms import UserForm
 from printermood.lifx_api import get_lights
 
+
 mongo = PyMongo(app)
 
 

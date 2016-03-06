@@ -10,4 +10,3 @@ def get_emotions(face):
     # face = np.zeros((48, 48)).tolist()
     emotions = fer(face, api_key=INDICO_API_KEY)
     return emotions
-
