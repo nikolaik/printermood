@@ -1,6 +1,8 @@
 # Base image
 printermood:
     build: .
+    volumes:
+        - .:/app/
 
 # Implementations of the base image
 cam:
