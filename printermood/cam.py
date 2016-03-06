@@ -1,4 +1,5 @@
 from __future__ import print_function
+from utils import are_rectangles_overlapping
 import argparse
 import sys
 import logging
@@ -28,23 +29,6 @@ class FaceCamera(object):
         self.video_capture = None
         self._face_store = []
 
-    def _faces_overlapping(self, face1, face2):
-        f1_x1, f1_x2 = face1[0], face1[0] + face1[2]
-        f1_y1, f1_y2 = face1[1], face1[1] + face1[3]
-
-        f2_x1, f2_x2 = face2[0], face2[0] + face2[2]
-        f2_y1, f2_y2 = face2[1], face2[1] + face2[3]
-
-        op_x1 = f1_x1 <= f2_x1 <= f1_x2
-        op_x2 = f2_x1 <= f1_x1 <= f2_x2
-        op_x = op_x1 or op_x2
-
-        op_y1 = f2_y1 <= f1_y1 <= f2_y2
-        op_y2 = f1_y1 <= f2_y1 <= f1_y2
-        op_y = op_y1 or op_y2
-
-        return op_x and op_y
-
     def _so_sharpness(self, face):
         gy, gx = numpy.gradient(face)
         norm = gx**2 + gy**2
@@ -59,7 +43,7 @@ class FaceCamera(object):
     def _update_face_store(self, face_coords, face_img):
         face_index = -1
         for index, stored_face_tuple in enumerate(self._face_store):
-            if self._faces_overlapping(stored_face_tuple[1], face_coords):
+            if are_rectangles_overlapping(stored_face_tuple[1], face_coords):
                 face_index = index
                 break
 
