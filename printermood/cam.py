@@ -1,6 +1,6 @@
 from __future__ import print_function
-from utils import are_rectangles_overlapping
 import argparse
+import dlib
 import sys
 import logging
 import time
@@ -20,54 +20,25 @@ logger = logging.getLogger(__name__)
 
 
 class FaceCamera(object):
-    def __init__(self, cascade_path, fps=25, delay=0.5, show_preview=False):
+    def __init__(self, cascade_path, fps=25, show_preview=False):
         self.fps = fps
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
-        self.face_extraction_delay = delay
         self.object_tracker = None
         self.show_preview = show_preview
         self.video_capture = None
-        self._face_store = []
 
-    def _so_sharpness(self, face):
+    def _sharpness(self, face):
         gy, gx = numpy.gradient(face)
         norm = gx**2 + gy**2
         return numpy.average(norm)
 
     def _better_face(self, face1, face2):
-        f = self._so_sharpness
-        sharpness1 = f(face1)
-        sharpness2 = f(face2)
+        sharpness1 = self._sharpness(face1)
+        sharpness2 = self._sharpness(face2)
         return sharpness1 > sharpness2
-
-    def _update_face_store(self, face_coords, face_img):
-        face_index = -1
-        for index, stored_face_tuple in enumerate(self._face_store):
-            if are_rectangles_overlapping(stored_face_tuple[1], face_coords):
-                face_index = index
-                break
-
-        target_size = 120, int(120 * (float(face_coords[3]) / face_coords[2]))
-        face_stored = cv2.resize(face_img, target_size)
-
-        if face_index >= 0:
-            t, old_coords, img, face = self._face_store[face_index]
-            if self._better_face(face_img, img):
-                img = face_img
-
-            if time.time() - t > self.face_extraction_delay:
-                del self._face_store[face_index]
-                return img
-            self._face_store[face_index] = ((t, face_coords, img, face_stored))
-        else:
-            self._face_store.append((time.time(),
-                                     face_coords,
-                                     face_img,
-                                     face_stored))
 
     def capture_frame(self):
         ret, frame = self.video_capture.read()
-
         return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     def get_face_locations(self, frame):
@@ -84,12 +55,8 @@ class FaceCamera(object):
             flags=flags,
         )
 
-    def extract_face(self, frame, face=None, rect=None):
-        assert face or rect
-        if rect:
-            x, y, w, h = rect
-        else:
-            x, y, w, h = self.get_rect(face)
+    def extract_face(self, frame, rect):
+        x, y, w, h = rect
         return frame[y:y+h, x:x+w]
 
     def get_rect(self, face, margins_x=30, margins_y=80):
@@ -109,38 +76,17 @@ class FaceCamera(object):
     def start(self):
         self.video_capture = cv2.VideoCapture(0)
 
-    def loop(self):
+    def _wait_for_faces(self):
         seconds_per_frame = 1.0 / self.fps
         while True:
             start_time = time.time()
             frame = self.capture_frame()
             faces = self.get_face_locations(frame)
-            logger.debug('Found %d faces at locations %s.',
-                         len(faces),
-                         ', '.join(map(str, faces)))
-
-            if self.show_preview:
-                cv2.imshow('Preview', frame)
-
-            ready_faces = []
-            for face in faces:
-                rect = self.get_rect(face)
-                if self.show_preview:
-                    self.draw_rect(frame, rect)
-
-                face_img = self.extract_face(frame, rect=rect)
-                ready_face = self._update_face_store(rect, face_img)
-                if ready_face is not None:
-                    ready_faces.append(ready_face)
-
-            for ready_face in ready_faces:
-                yield ready_face
-
-            if cv2.waitKey(1) & 0xFF in map(ord, list('cq')):
-                break
-
             end_time = time.time()
             duration_s = end_time - start_time
+
+            if len(faces) > 0:
+                return frame, faces
 
             sleep_str = ''
             if duration_s < seconds_per_frame:
@@ -152,17 +98,50 @@ class FaceCamera(object):
                          duration_s * 1000,
                          sleep_str)
 
-    def stop(self):
-        self.video_capture.release()
-        cv2.destroyAllWindows()
+    def detect(self):
+        frame, faces = self._wait_for_faces()
+        logger.debug('Found %d faces at locations %s.',
+                     len(faces),
+                     ', '.join(map(str, faces)))
 
-    def __iter__(self):
-        self.start()
-        try:
-            for face in self.loop():
-                yield face
-        finally:
-            self.stop()
+        if len(faces) == 0:
+            return []
+
+        # We care only about the first person in the picture for now
+        face = faces[0]
+        x, y, w, h = map(int, face)
+        face_rectangle = dlib.rectangle(x, y, x+w, y+h)
+
+        # This will eventually be returned from this function. List of all
+        # faces for this person:
+        face_series = [self.extract_face(frame, rect=face)]
+
+        # Initialize the object tracker:
+        self.object_tracker = dlib.correlation_tracker()
+        self.object_tracker.start_track(frame, face_rectangle)
+
+        while True:
+            frame = self.capture_frame()
+            psr = self.object_tracker.update(frame)
+            if psr < 10:
+                return face_series
+
+            position = self.object_tracker.get_position()
+            rectangle = (int(position.left()),
+                         int(position.top()),
+                         int(position.width()),
+                         int(position.height()))
+
+            face_series.append(self.extract_face(frame, rect=rectangle))
+            self.draw_rect(frame, rectangle)
+            cv2.imshow('Preview', frame)
+            if cv2.waitKey(1) & 0xFF in map(ord, list('cq')):
+                return None
+
+    def stop(self):
+        if self.video_capture:
+            self.video_capture.release()
+        cv2.destroyAllWindows()
 
 
 def get_arguments():
@@ -192,10 +171,15 @@ if __name__ == "__main__":
         sys.exit(1)
 
     cam = FaceCamera(haar, show_preview=True)
+    cam.start()
 
     try:
-        for frame in cam:
+        face_series = cam.detect()
+        cv2.destroyAllWindows()
+        for frame in face_series:
             cv2.imshow('Video', frame)
+            if cv2.waitKey(1000) & 0xFF in map(ord, list('cq')):
+                sys.exit(0)
     except KeyboardInterrupt:
         pass
     finally:

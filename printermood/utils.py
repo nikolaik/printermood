@@ -15,7 +15,7 @@ def top_emotion(emotions):
 
 def are_rectangles_overlapping(rect1, rect2):
     """Returns `True` if two rectangles are overlapping.
-    
+
     >>> rectangle1 = (0, 0, 10, 10)
     >>> rectangle2 = (0, 10, 20, 20)
     >>> rectangle3 = (11, 11, 20, 20)
