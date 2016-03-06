@@ -76,10 +76,10 @@ class FaceCamera(object):
                 return img
             self._face_store[face_index] = ((t, face_coords, img, face_stored))
         else:
-            self._face_store.append(tuple(time.time(),
-                                          face_coords,
-                                          face_img,
-                                          face_stored))
+            self._face_store.append((time.time(),
+                                     face_coords,
+                                     face_img,
+                                     face_stored))
 
     def capture_frame(self):
         ret, frame = self.video_capture.read()
