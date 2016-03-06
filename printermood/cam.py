@@ -1,5 +1,10 @@
 from __future__ import print_function
+import argparse
 import sys
+import dlib
+import logging
+import time
+
 try:
     import cv2
     import numpy
@@ -9,12 +14,8 @@ except ImportError:
     import cv2
     import numpy
 
-import logging
-import time
 
 CV2_VERSION = tuple(map(lambda x: int(x), cv2.__version__.split('.')))
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -44,11 +45,6 @@ class FaceCamera(object):
 
         return op_x and op_y
 
-    def _custom_sharpness(self, face):
-        edges = cv2.Laplacian(face, cv2.CV_64F)
-        hist = numpy.histogram(edges, range=(0, 255), density=True, bins=255)
-        return sum(i * v for i, v in enumerate(hist[0][64:]))
-
     def _so_sharpness(self, face):
         gy, gx = numpy.gradient(face)
         norm = gx**2 + gy**2
@@ -58,7 +54,6 @@ class FaceCamera(object):
         f = self._so_sharpness
         sharpness1 = f(face1)
         sharpness2 = f(face2)
-        logger.debug('sharpness1=%0.2f %s sharpness2=%0.2f' % (sharpness1, '>' if sharpness1 > sharpness2 else '<', sharpness2))
         return sharpness1 > sharpness2
 
     def _update_face_store(self, face_coords, face_img):
@@ -130,8 +125,6 @@ class FaceCamera(object):
         while True:
             start_time = time.time()
             frame = self.capture_frame()
-            logger.debug('Captured a frame.')
-
             faces = self.get_face_locations(frame)
             logger.debug('Found %d faces at locations %s.', len(faces), ', '.join(map(str, faces)))
 
@@ -179,13 +172,31 @@ class FaceCamera(object):
         finally:
             self.stop()
 
-if __name__ == "__main__":
-    try:
-        haar = sys.argv[1]
-    except IndexError:
-        haar = 'haarcascade_frontalface_default.xml'
 
+def get_arguments():
+    argument_parser = argparse.ArgumentParser(description="Face detection script.")
+    argument_parser.add_argument(
+        '-c', 
+        '--cascade', 
+        action='store',
+        default='printermood/haarcascade_frontalface_default.xml',
+    )
+    return argument_parser.parse_args()
+
+
+if __name__ == "__main__":
     logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+
+    args = get_arguments()
+    haar = args.cascade
+
+    try:
+        open(haar, 'r').close()
+    except IOError:
+        logger.error('Given cascade "%s" does not exist!', haar)
+        sys.exit(1)
+
     cam = FaceCamera(haar, show_preview=True)
 
     try:
