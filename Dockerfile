@@ -30,6 +30,8 @@ RUN apt-get install -y python-numpy python-scipy python-sklearn
 WORKDIR /app/
 ADD requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt 
+RUN pip install flake8
 
 ADD . /app/
+RUN flake8 printermood
 
