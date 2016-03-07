@@ -14,7 +14,7 @@ cam:
         - DISPLAY=:0.0
     volumes:
         - '/tmp/.X11-unix:/tmp/.X11-unix'
-    command: python printermood/cam.py --cascade printermood/haarcascade_frontalface_default.xml
+    command: python printermood/cam.py --cascade printermood/haarcascade_frontalface_default.xml --preview
 
 test:
     extends: 
