@@ -120,6 +120,7 @@ class FaceCamera(object):
         self.object_tracker = dlib.correlation_tracker()
         self.object_tracker.start_track(frame, face_rectangle)
 
+        logger.info("Starting tracking using dlib.correlation_tracker.")
         while True:
             frame = self.capture_frame()
             psr = self.object_tracker.update(frame)
@@ -175,10 +176,11 @@ if __name__ == "__main__":
 
     try:
         face_series = cam.detect()
+        logger.debug('A series of %d images was returned.', len(face_series))
         cv2.destroyAllWindows()
         for frame in face_series:
             cv2.imshow('Video', frame)
-            if cv2.waitKey(1000) & 0xFF in map(ord, list('cq')):
+            if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
                 sys.exit(0)
     except KeyboardInterrupt:
         pass
