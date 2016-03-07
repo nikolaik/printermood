@@ -7,8 +7,9 @@ Match the light in your printer room with how the user feels
 ### Docker
 The support for docker is still experimental, but at this point we have support for python-opencv and scikit-learn, which is a major step forward.
 
-	docker build -t robertko/printermood .
-	docker run -ti --rm --privileged -e DISPLAY=:0.0 -v /tmp/.X11-unix:/tmp/.X11-unix robertko/printermood python printermood/cam.py
+    docker build -t robertko/printermood .
+    xhost +SI:localuser:root  # add root user to xserver access control list (.Xauthority)
+    docker run -ti --rm --privileged -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix robertko/printermood python printermood/cam.py
 
 ### Manually
     apt install mongo-server python3-venv python3-dev
