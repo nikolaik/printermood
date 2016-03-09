@@ -135,9 +135,10 @@ class FaceCamera(object):
 
             face_series.append(self.extract_face(frame, rect=rectangle))
             self.draw_rect(frame, rectangle)
-            cv2.imshow('Preview', frame)
-            if cv2.waitKey(1) & 0xFF in map(ord, list('cq')):
-                return None
+            if self.show_preview:
+                cv2.imshow('Preview', frame)
+                if cv2.waitKey(1) & 0xFF in map(ord, list('cq')):
+                    return None
 
     def stop(self):
         if self.video_capture:
@@ -155,6 +156,11 @@ def get_arguments():
         action='store',
         default='printermood/haarcascade_frontalface_default.xml',
     )
+    argument_parser.add_argument(
+        '-p',
+        '--preview',
+        action='store_true',
+    )
     return argument_parser.parse_args()
 
 
@@ -171,17 +177,20 @@ if __name__ == "__main__":
         logger.error('Given cascade "%s" does not exist!', haar)
         sys.exit(1)
 
-    cam = FaceCamera(haar, show_preview=True)
+    cam = FaceCamera(haar, show_preview=args.preview)
     cam.start()
 
     try:
         face_series = cam.detect()
         logger.debug('A series of %d images was returned.', len(face_series))
         cv2.destroyAllWindows()
-        for frame in face_series:
-            cv2.imshow('Video', frame)
-            if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
-                sys.exit(0)
+        if args.preview:
+            for frame in face_series:
+                cv2.imshow('Video', frame)
+                if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
+                    sys.exit(0)
+        else:
+            print('Preview disabled. Camera returned {0} images of faces'.format(len(face_series)))
     except KeyboardInterrupt:
         pass
     finally:
