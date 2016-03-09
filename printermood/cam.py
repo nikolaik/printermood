@@ -190,7 +190,8 @@ if __name__ == "__main__":
                 if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
                     sys.exit(0)
         else:
-            print('Preview disabled. Camera returned {0} images of faces'.format(len(face_series)))
+            msg = 'Preview disabled. Camera returned {0} images of faces'
+            print(msg.format(len(face_series)))
     except KeyboardInterrupt:
         pass
     finally:
