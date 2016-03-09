@@ -33,6 +33,7 @@ class Face(object):
             self._face = self.frame[y:y+h, x:x+w]
         return self._face
 
+    @property
     def sharpness(self):
         if self._sharpness is None:
             gy, gx = numpy.gradient(self.face)
@@ -133,7 +134,7 @@ class FaceCamera(object):
         while True:
             frame = self.capture_frame()
             psr = self.object_tracker.update(frame)
-            if psr < 10:
+            if psr < 8.0:
                 return face_series
 
             position = self.object_tracker.get_position()
@@ -194,8 +195,10 @@ if __name__ == "__main__":
         logger.debug('A series of %d images was returned.', len(face_series))
         cv2.destroyAllWindows()
         if args.preview:
-            for face in face_series:
-                cv2.imshow('Video', face.face)
+            for image in face_series:
+                face = image.face
+                cv2.putText(face, "Sharpness: %d" % image.sharpness, (50, 24), cv2.FONT_HERSHEY_PLAIN, 1.0, (180, 180, 180))
+                cv2.imshow('Video', face)
                 if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
                     sys.exit(0)
         else:
