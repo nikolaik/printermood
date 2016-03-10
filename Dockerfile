@@ -16,7 +16,7 @@ RUN apt-get install -y python-opencv
 # ==============
 # Install Dlib #
 # ==============
-RUN apt-get install -y cmake libboost-python-dev git
+RUN apt-get install -y cmake libboost-python-dev git libopenblas-dev liblapack-dev
 RUN git clone https://github.com/davisking/dlib.git /dlib/
 WORKDIR /dlib/
 RUN python setup.py install

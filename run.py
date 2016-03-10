@@ -1,3 +1,5 @@
+import os
 from printermood import app
 
-app.run(debug=True)
+host = os.getenv('FLASK_HOST', '127.0.0.1')
+app.run(debug=True, host=host)
