@@ -1,8 +1,11 @@
-from bson import ObjectId
-from flask import render_template, redirect, request
-from printermood import app
+import base64
+import datetime
+
+from bson import ObjectId, Binary
+from flask import render_template, redirect, request, jsonify
+from printermood import socketio, app
 from flask.ext.pymongo import PyMongo
-from printermood.forms import UserForm
+from printermood.forms import UserForm, ImageForm
 from printermood.lifx_api import get_lights
 
 
@@ -71,3 +74,38 @@ def face_list():
         'menu_items': _get_menu_items()
     }
     return render_template('face_list.html', **data)
+
+
+@app.route('/process/', methods=['PUT'])
+def raw():
+    form = ImageForm(csrf_enabled=False)
+    if form.validate_on_submit():
+        image_data = form.data['image'].read()
+        image_doc = {
+            'file': Binary(image_data),
+            'timestamp': datetime.datetime.now(),
+            'mime_type': 'image/png'  # FIXME
+        }
+        res = mongo.db.images.insert_one(image_doc)
+
+        # notify clients
+        client_data = {
+            'id': str(res.inserted_id),
+            'data': base64.b64encode(image_data).decode('ascii'),
+            'mime_type': 'image/png',  # FIXME
+            'timestamp': datetime.datetime.now().isoformat(),
+        }
+
+        socketio.emit('image-new', client_data)
+
+        return jsonify(**{'result': 'OK', 'id': str(res.inserted_id)})
+
+    return jsonify(**{'result': 'Less than OK', 'errors': form.errors})
+
+
+@socketio.on('message')
+def handle_message(message):
+    if isinstance(message, dict):
+        print('received message: ' + '\n'.join(['{}: {}'.format(k, v) for k, v in message.items()]))
+    else:
+        print('received message: ' + message)

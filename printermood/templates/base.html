@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            socket.emit('message', {data: 'I\'m connected!'});
+        });
+
+        socket.on('image-new', function(data) {
+            /* Write to DOM */
+            var img = document.createElement("img");
+            img.src = 'data:'+ data.mime_type +';base64,' + data.data;
+            var src = document.querySelector(".page-content");
+            src.appendChild(img, src.firstChild);
+        });
+
+    </script>
     <script src="/static/dist/bundle.js"></script>
 </head>
 <body>
