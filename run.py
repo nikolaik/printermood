@@ -1,3 +1,5 @@
-from printermood import app
+import os
+from printermood import socketio, app
 
-app.run(debug=True)
+host = os.getenv('FLASK_HOST', '127.0.0.1')
+socketio.run(app, debug=True, host=host)

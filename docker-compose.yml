@@ -1,36 +1,54 @@
-# Base image
-printermood:
-    build: .
-    volumes:
-        - .:/app/
+version: '2'
+services:
+    # Base image
+    printermood:
+        build: .
+        volumes:
+            - .:/app/
 
-# Implementations of the base image
-cam:
-    extends: 
-        file: docker-compose.yml
-        service: printermood
-    privileged: true
-    environment:
-        - DISPLAY=:0.0
-    volumes:
-        - '/tmp/.X11-unix:/tmp/.X11-unix'
-    command: python printermood/cam.py --cascade printermood/haarcascade_frontalface_default.xml --preview
+    # Implementations of the base image
+    cam:
+        extends:
+            file: docker-compose.yml
+            service: printermood
+        privileged: true
+        environment:
+            - DISPLAY
+        volumes:
+            - '/tmp/.X11-unix:/tmp/.X11-unix'
+        command: python printermood/cam.py --cascade printermood/haarcascade_frontalface_default.xml --preview
 
-test:
-    extends: 
-        file: docker-compose.yml
-        service: printermood
-    links:
-        - mongo
-    environment:
-        - MONGO_HOST=mongo
-        - MONGO_PORT=27017
-    command: nosetests
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile-web
+        ports:
+            - "5000:5000"
+        volumes:
+            - .:/app/
+        links:
+            - mongo
+        environment:
+            - FLASK_HOST=0.0.0.0
+            - MONGO_HOST=mongo
+            - MONGO_PORT=27017
+        command: python3 run.py
 
-# External libs
-mongo:
-    restart: always
-    expose:
-        - "27017"
-    image: mongo
+    test:
+        extends:
+            file: docker-compose.yml
+            service: printermood
+        links:
+            - mongo
+        environment:
+            - MONGO_HOST=mongo
+            - MONGO_PORT=27017
+        command: nosetests
+
+    # External libs
+    mongo:
+        restart: always
+        expose:
+            - "27017"
+        image: mongo
 
