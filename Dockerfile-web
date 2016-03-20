@@ -3,13 +3,13 @@ FROM ubuntu:latest
 RUN apt-get update
 RUN apt-get purge python
 RUN apt-get autoremove -y
-RUN apt-get install -y python3.4 python3-pip python3-dev 
+RUN apt-get install -y python3.4 python3-pip python3-dev
 RUN apt-get build-dep -y pillow
 
 WORKDIR /app/
-ADD requirements.txt /app/requirements.txt
-RUN pip3 install -r /app/requirements.txt 
+ADD requirements-web.txt /app/requirements-web.txt
+RUN pip3 install -r /app/requirements-web.txt
 RUN pip3 install flake8
 
 ADD . /app/
-RUN flake8 printermood
+RUN flake8 pmweb

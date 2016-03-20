@@ -197,7 +197,8 @@ if __name__ == "__main__":
         if args.preview:
             for image in face_series:
                 face = image.face
-                cv2.putText(face, "Sharpness: %d" % image.sharpness, (50, 24), cv2.FONT_HERSHEY_PLAIN, 1.0, (180, 180, 180))
+                txt = "Sharpness: %d" % image.sharpness, (50, 24), cv2.FONT_HERSHEY_PLAIN, 1.0, (180, 180, 180)
+                cv2.putText(face, txt)
                 cv2.imshow('Video', face)
                 if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
                     sys.exit(0)

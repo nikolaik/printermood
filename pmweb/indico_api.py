@@ -1,6 +1,6 @@
 from indicoio import fer
 
-from printermood import app
+from pmweb import app
 
 INDICO_API_KEY = app.config['INDICO_API_KEY']
 

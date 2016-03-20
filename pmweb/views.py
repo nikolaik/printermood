@@ -3,10 +3,11 @@ import datetime
 
 from bson import ObjectId, Binary
 from flask import render_template, redirect, request, jsonify
-from printermood import socketio, app
+from pmweb.utils import get_mime_type
+from pmweb import socketio, app
 from flask.ext.pymongo import PyMongo
-from printermood.forms import UserForm, ImageForm
-from printermood.lifx_api import get_lights
+from pmweb.forms import UserForm, ImageForm
+from pmweb.lifx_api import get_lights
 
 
 mongo = PyMongo(app)
@@ -77,14 +78,17 @@ def face_list():
 
 
 @app.route('/process/', methods=['PUT'])
-def raw():
+def process():
     form = ImageForm(csrf_enabled=False)
     if form.validate_on_submit():
         image_data = form.data['image'].read()
+
+        timestamp = datetime.datetime.now()
+        mime_type = get_mime_type(image_data)
         image_doc = {
             'file': Binary(image_data),
-            'timestamp': datetime.datetime.now(),
-            'mime_type': 'image/png'  # FIXME
+            'timestamp': timestamp,
+            'mime_type': mime_type
         }
         res = mongo.db.images.insert_one(image_doc)
 
@@ -92,8 +96,8 @@ def raw():
         client_data = {
             'id': str(res.inserted_id),
             'data': base64.b64encode(image_data).decode('ascii'),
-            'mime_type': 'image/png',  # FIXME
-            'timestamp': datetime.datetime.now().isoformat(),
+            'mime_type': mime_type,
+            'timestamp': timestamp.isoformat(),
         }
 
         socketio.emit('image-new', client_data)
