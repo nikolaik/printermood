@@ -1,6 +1,7 @@
 import base64
 import datetime
 
+import pymongo
 from bson import ObjectId, Binary
 from flask import render_template, redirect, request, jsonify
 from pmweb.utils import get_mime_type, get_data_url
@@ -93,18 +94,16 @@ def user_detail(user_id):
 
 @app.route('/faces/')
 def face_list():
-    face_objects = mongo.db.images.find()
-    faces = []
-    for f in face_objects:
-        faces.append({
-            'id': f['_id'],
-            'url': get_data_url(f),
-            'timestamp': f['timestamp']
-        })
+    def _face_to_dict(f):
+        return dict(id=f['_id'], url=get_data_url(f), timestamp=f['timestamp'])
+
+    faces = mongo.db.images.find().sort("timestamp", pymongo.DESCENDING)
+
     data = {
-        'face_list': faces,
+        'face_list': map(_face_to_dict, faces),
         'menu_items': _get_menu_items()
     }
+
     return render_template('face_list.html', **data)
 
 
