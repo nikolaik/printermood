@@ -18,6 +18,7 @@ INDICO_API_KEY = ''
 # Mongo DB settings:
 MONGO_HOST = os.getenv('MONGO_HOST', 'localhost')
 MONGO_PORT = os.getenv('MONGO_PORT', '27017')
+MONGO_DBNAME = os.getenv('MONGO_DBNAME', 'printermood')
 
 try:
     from local_config import *
