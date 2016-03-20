@@ -19,7 +19,7 @@ CV2_VERSION = tuple(map(lambda x: int(x), cv2.__version__.split('.')))
 logger = logging.getLogger(__name__)
 
 
-class Face(object):
+class ImageLocation(object):
     def __init__(self, frame, location):
         self.frame = frame
         self.location = location
@@ -67,7 +67,7 @@ class FaceCamera(object):
             minSize=(60, 90),
             flags=flags,
         )
-        return [Face(frame, rectangle) for rectangle in rectangles]
+        return [ImageLocation(frame, rectangle) for rectangle in rectangles]
 
     def get_rect(self, face, margins_x=30, margins_y=80):
         x, y, w, h = face
@@ -143,12 +143,12 @@ class FaceCamera(object):
                          int(position.width()),
                          int(position.height()))
 
-            face_series.append(Face(frame, rectangle))
+            face_series.append(ImageLocation(frame, rectangle))
             self.draw_rect(frame, rectangle)
             if self.show_preview:
                 cv2.imshow('Preview', frame)
                 if cv2.waitKey(1) & 0xFF in map(ord, list('cq')):
-                    return None
+                    return face_series
 
     def stop(self):
         if self.video_capture:
@@ -197,7 +197,11 @@ if __name__ == "__main__":
         if args.preview:
             for image in face_series:
                 face = image.face
-                cv2.putText(face, "Sharpness: %d" % image.sharpness, (50, 24), cv2.FONT_HERSHEY_PLAIN, 1.0, (180, 180, 180))
+                cv2.putText(face,
+                            "Sharpness: %d" % image.sharpness, (50, 24),
+                            cv2.FONT_HERSHEY_PLAIN,
+                            1.0,
+                            (180, 180, 180))
                 cv2.imshow('Video', face)
                 if cv2.waitKey(100) & 0xFF in map(ord, list('cq')):
                     sys.exit(0)
