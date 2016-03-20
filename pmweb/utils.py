@@ -11,7 +11,7 @@ def top_emotion(emotions):
 
 
 def get_mime_type(image_data):
-    return magic.from_buffer(image_data, mime=True)
+    return magic.from_buffer(image_data, mime=True).decode('ascii')
 
 
 def get_data_url(image):
