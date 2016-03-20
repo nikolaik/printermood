@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="mdl-grid">
+<div class="mdl-grid page-face-list">
     <div class="mdl-cell mdl-cell--12-col">
         <h1>Faces</h1>
-        <ul>
+        <ul class="list-of-faces">
         {% for f in face_list %}
-            <li><img src="{{ f.url }}">{{ f.created }} <a href="#">{{ f.timestamp }}</a></li>
+            <li class="face-item"><img src="{{ f.url }}" class="face-img">{{ f.created }} <a href="#" class="face-link">{{ f.timestamp|string|truncate(19, true, '') }}</a></li>
         {% endfor %}
         </ul>
         <a href="/" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Back</a>
