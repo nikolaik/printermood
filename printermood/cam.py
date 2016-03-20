@@ -5,6 +5,8 @@ import sys
 import logging
 import time
 
+import requests
+
 try:
     import cv2
     import numpy
@@ -171,6 +173,12 @@ def get_arguments():
         '--preview',
         action='store_true',
     )
+    argument_parser.add_argument(
+        '-f',
+        '--forward-url',
+        action='store',
+        default=None
+    )
     return argument_parser.parse_args()
 
 
@@ -208,6 +216,16 @@ if __name__ == "__main__":
         else:
             msg = 'Preview disabled. Camera returned {0} images of faces'
             print(msg.format(len(face_series)))
+
+        if args.forward_url is not None:
+            for image in face_series:
+                retval, jpeg_data = cv2.imencode('.jpg', image.face)
+                jpeg_data = jpeg_data.tostring()
+                res = requests.put(args.forward_url, files={'image': ('whatever.jpg', jpeg_data)})
+
+                if res.status_code != 200:
+                    logger.warning('Endpoint at {} returned HTTP {}'.format(args.forward_url, res.status_code))
+
     except KeyboardInterrupt:
         pass
     finally:

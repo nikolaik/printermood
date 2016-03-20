@@ -1,9 +1,9 @@
 import os
 import unittest
 
-from printermood.indico_api import get_emotions
-from printermood.lifx_api import get_lights
-from printermood.utils import top_emotion
+from pmweb.indico_api import get_emotions
+from pmweb.lifx_api import get_lights
+from pmweb.utils import top_emotion
 
 
 class TestAllTheThings(unittest.TestCase):

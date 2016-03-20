@@ -44,9 +44,7 @@ The support for docker is still experimental, but at this point we have support 
 - [x] Capture image if motion and face is detected, per 3s
 - [ ] Send image to Indico and save result
 - [ ] On 5 faces with same emotion (confidence above ~0.4) set lightbulb state to specified color
-- [ ] Create a blocking "get_face"-function
-- [ ] Consider setting up docker-compose
-- [ ] Add mongodb docker image
+- [ ] include ideas from https://indico.io/blog/exploring-computer-vision-improving-security-cameras-machine-learning/ , https://github.com/nlintz/Indico-Security-Camera/blob/master/controllers/lastUpdate.js
 
 # Models
 

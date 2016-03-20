@@ -1,5 +1,5 @@
 import requests
-from printermood import app
+from pmweb import app
 
 LIFX_TOKEN = app.config['LIFX_TOKEN']
 
