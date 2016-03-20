@@ -1,0 +1,80 @@
+@mixin clearfix() {
+    &:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+
+body {
+    background-color: #fcfcfc;
+}
+.welcome-card {
+    > .mdl-card__title {
+        height: 176px;
+        background: url('../../nice.png') center / cover;
+    }
+
+    &__greeting {
+        margin: 0;
+    }
+}
+
+.current-mood-card {
+    &.mdl-card {
+        min-height: 150px;
+        width: 100%;
+    }
+    &__mood {
+        margin: 0;
+    }
+    &__mood i {
+        font-size: 56px;
+        vertical-align: middle;
+    }
+}
+.light-card {
+    &.mdl-card {
+        min-height: 130px;
+        width: 100%;
+    }
+    .mdl-card__supporting-text i {
+        vertical-align: middle;
+    }
+}
+.mood-card.mdl-card {
+    width: 100%;
+}
+.section--center {
+    max-width: 860px;
+}
+
+/* Page: Face list */
+.page-face-list {
+
+}
+.list-of-faces {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    margin-bottom: 20px;
+    @include clearfix;
+}
+.face-item {
+    float: left;
+    position: relative;
+}
+.face-img {
+    height: 155px;
+}
+.face-link {
+    position: absolute;
+    background: rgba(0,0,0,0.4);
+    text-align: center;
+    font-size: 12px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    line-height: 1.5;
+}
