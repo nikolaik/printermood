@@ -2,11 +2,9 @@
 from __future__ import print_function
 import argparse
 import cv2
-import math
 import numpy as np
 import os
 import sys
-import uuid
 
 
 def get_arguments():
@@ -68,10 +66,10 @@ def show_images(path1, path2, window_name=None, separator_size=5, max_height=480
 
     width_left, height_left = image_dimensions(image_left)
     width_right, height_right = image_dimensions(image_right)
-    
+
     total_height = max(height_left, height_right)
     total_width = width_left + separator_size + width_right
-    
+
     separator_image = np.zeros((total_height, separator_size, 3), np.uint8)
     total_image = np.concatenate([image_left, separator_image, image_right], 1)
 
@@ -83,8 +81,7 @@ def show_images(path1, path2, window_name=None, separator_size=5, max_height=480
                 (50, 50),
                 cv2.FONT_HERSHEY_PLAIN,
                 1.0,
-                (0, 0, 0)
-    )
+                (0, 0, 0))
 
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
     cv2.resizeWindow(window_name, resized_width, resized_height)
@@ -93,7 +90,7 @@ def show_images(path1, path2, window_name=None, separator_size=5, max_height=480
 
 
 def comparator(path1, path2):
-    window_name = show_images(path1, path2)
+    show_images(path1, path2)
 
     try:
         key = cv2.waitKey(0) & 0xff
@@ -118,7 +115,7 @@ if __name__ == "__main__":
             image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
             if image is None:
                 print("File \"{0}\" couldn't be opened!".format(path))
-                do_stop=True
+                do_stop = True
 
     if do_stop:
         sys.exit(1)
